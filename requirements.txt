@@ -1,0 +1,2 @@
+requests
+hca-ingest==0.6.8
