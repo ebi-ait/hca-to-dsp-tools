@@ -1,6 +1,3 @@
-from ingest.importer.importer import XlsImporter
-from ingest.api.ingestapi import IngestApi
-from pprint import pprint
 import requests as rq
 import json as js
 from datetime import datetime
@@ -90,10 +87,13 @@ def correct_sample_metadata(sample_dict):
                 if not term['is_defining_ontology']:
                     continue
                 else:
-                    print(ontologised_term, i)
-                    sample_dict['attributes'][f"{ontologised_term}_{i}"] = []
-                    sample_dict['attributes'][f"{ontologised_term}_{i}"].append({'value': term['label']})
-                    sample_dict['attributes'][f"{ontologised_term}_{i}"][-1]['terms'] = [{'url': ols_response['_embedded']['terms'][0]['iri']}]
+                    if len(value['ontology']) > 1:
+                        index_str = f'_{i + 1}'
+                    else:
+                        index_str = ''
+                    sample_dict['attributes'][f"{ontologised_term}{index_str}"] = []
+                    sample_dict['attributes'][f"{ontologised_term}{index_str}"].append({'value': term['label']})
+                    sample_dict['attributes'][f"{ontologised_term}{index_str}"][-1]['terms'] = [{'url': ols_response['_embedded']['terms'][0]['iri']}]
                     break
             else:
                 print(f"Couldn't find a defining ontology for {value['ontology'][0]['value']}")
@@ -304,7 +304,7 @@ def get_json_from_map(entity_map):
             entity_dict['project'].append(get_project_information(entity))
             entity_dict['study'].append(get_study_information(entity))
 
-        if entity.type =='protocol':
+        if entity.type == 'protocol':
             protocols[entity.id] = entity
         """
         if entity.concrete_type == 'library_preparation_protocol':
