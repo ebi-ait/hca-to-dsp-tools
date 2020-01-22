@@ -1,6 +1,8 @@
 from dsp_cli.DSP_submission import DspCLI
 from importer.create_json_from_spreadsheet import get_json_from_map
 from importer.create_json_from_spreadsheet import write_json_to_submit
+from ingest.importer.importer import XlsImporter
+from ingest.api.ingestapi import IngestApi
 import inspect
 import json as js
 
@@ -73,7 +75,22 @@ def main():
             if not cli_function:
                 break
             call_function(cli_function, dsp)
+    if option == 3:
+        # Import the spreadsheet with HCA ingest importer
+        input_path = input("Please provide with the path to the HCA spreadsheet file: ")
+        print("Importing; Might take some time to process...\n\n")
+        api = IngestApi(url="https://api.ingest.data.humancellatlas.org/")
+        importer = XlsImporter(api)
+        spreadsheet = importer.dry_run_import_file(input_path)
+        entity_map = spreadsheet.get_entities()
 
+        # Get JSON object list from the entity map
+        json_list = get_json_from_map(entity_map)
+
+        # Write to folder
+        output_path = input("Please provide with the folder path for the submittable outputs: ")
+        write_json_to_submit(json_list, output_path)
+        print(f"Saved submittable JSONs to folder {output_path}")
     print("Goodbye! :)")
 
 if __name__ == '__main__':

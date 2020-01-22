@@ -3,6 +3,9 @@ from pprint import pprint
 import os
 import json as js
 
+
+# TODO Create delete_submission()
+
 class DspCLI():
     def __init__(self):
         self.user, self.password,self.root = self._retrieve_credentials()
@@ -26,8 +29,9 @@ class DspCLI():
         self.validation_results = ''
         self.processing_status = ''
 
+    # TODO create pretty version of list_submissions (show_submissions?)
     def list_submissions(self):
-        return rq.get(f'{self.root}user/submissions', headers=self.headers).json()
+        pprint(rq.get(f'{self.root}user/submissions', headers=self.headers).json())
 
     def _retrieve_token(self):
         dev = 'explore.' if '-test' in self.root else ''
@@ -55,12 +59,11 @@ class DspCLI():
                         'Authorization': f'Bearer {self.token}'}
         return response.json()
 
-    def create_empty_submission(self, team, name=''):
-        json = {} if not name else name
-        if isinstance(team, dict):
-            url = team['_links']['submissions:create']['href']
-        else:
-            url = team
+    def create_empty_submission(self, name=''):
+        if not self.team:
+            self.select_team()
+        json = {} if not name else {'name': name}
+        url = self.team['_links']['submissions:create']['href']
         self.submission = rq.post(url=url, json=json, headers=self.headers).json()
         self._update_token()
 
@@ -160,7 +163,6 @@ class DspCLI():
         self._retrieve_submission_content()
 
         # Sanity check for submission types
-        join_chars = "\n"
         while True:
             if not any([submittable_type == accepted_type for accepted_type in self.accepted_submission_types]):
                 print(f"Please select a number of one of the accepted submittable types from this list:")
@@ -172,6 +174,8 @@ class DspCLI():
                     break
                 else:
                     print("Please select a valid number")
+            else:
+                break
 
 
         # Create the submission
@@ -240,8 +244,9 @@ class DspCLI():
             submission_type = file.split('/')[-1].split('_')[0]
             with open(file, "r") as f:
                 submission = js.loads(f.read())
-            submission_function = getattr(self, f"submit_new_{submission_type}")
-            submission_function(submission)
+            self.submit_submittable(submission_type, submission)
+            #submission_function = getattr(self, f"submit_new_{submission_type}")
+            #submission_function(submission)
             self._update_token()
         self._update_token()
 

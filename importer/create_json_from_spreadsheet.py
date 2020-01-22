@@ -291,7 +291,7 @@ def get_json_from_map(entity_map):
         'files': [],
         'samples': [],
         'assays': [],
-        'project': [],
+        'projects': [],
         'study': [],
         'sequence_processes': []
                    }
@@ -301,7 +301,7 @@ def get_json_from_map(entity_map):
             entity_dict['samples'].append(get_sample_information(entity))
 
         if entity.type == "project":
-            entity_dict['project'].append(get_project_information(entity))
+            entity_dict['projects'].append(get_project_information(entity))
             entity_dict['study'].append(get_study_information(entity))
 
         if entity.type == 'protocol':
