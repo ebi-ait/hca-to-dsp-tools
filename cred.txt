@@ -1,3 +1,0 @@
-USER=
-PASSWORD=
-ROOT=https://submission-test.ebi.ac.uk/api/
