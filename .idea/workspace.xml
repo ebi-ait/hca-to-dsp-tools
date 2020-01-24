@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f25249f2-0979-4d7c-ad8b-16a4a5361f9c" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dsp_cli/DSP_submission.py" beforeDir="false" afterPath="$PROJECT_DIR$/dsp_cli/DSP_submission.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/easy_use.py" beforeDir="false" afterPath="$PROJECT_DIR$/easy_use.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/importer/create_json_from_spreadsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/importer/create_json_from_spreadsheet.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -41,11 +41,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/importer/create_json_from_spreadsheet.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="553">
-              <caret line="300" column="64" lean-forward="true" selection-start-line="300" selection-start-column="42" selection-end-line="300" selection-end-column="64" />
+            <state relative-caret-position="240">
+              <caret line="278" column="92" selection-start-line="278" selection-start-column="92" selection-end-line="278" selection-end-column="92" />
             </state>
           </provider>
         </entry>
@@ -54,7 +54,7 @@
         <entry file="file://$PROJECT_DIR$/easy_use.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="383">
-              <caret line="42" column="67" lean-forward="true" selection-start-line="42" selection-start-column="67" selection-end-line="42" selection-end-column="67" />
+              <caret line="42" column="67" selection-start-line="42" selection-start-column="67" selection-end-line="42" selection-end-column="67" />
               <folding>
                 <element signature="e#0#41#0" expanded="true" />
               </folding>
@@ -65,8 +65,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dsp_cli/DSP_submission.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1696">
-              <caret line="177" column="21" selection-start-line="177" selection-start-column="21" selection-end-line="177" selection-end-column="21" />
+            <state relative-caret-position="816">
+              <caret line="227" column="95" selection-start-line="227" selection-start-column="8" selection-end-line="227" selection-end-column="95" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -74,11 +74,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/cred.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" column="39" selection-start-line="2" selection-start-column="39" selection-end-line="2" selection-end-column="39" />
+            <state>
+              <caret column="12" selection-start-column="12" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -124,6 +124,7 @@
       <find>submit_new_samples</find>
       <find>create_new</find>
       <find>list_submiss</find>
+      <find>finish</find>
     </findStrings>
     <replaceStrings>
       <replace>_retrieve_token</replace>
@@ -142,17 +143,18 @@
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/requirements.txt" />
         <option value="$PROJECT_DIR$/easy_use.py" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/cred.txt" />
         <option value="$PROJECT_DIR$/dsp_cli/DSP_submission.py" />
         <option value="$PROJECT_DIR$/importer/create_json_from_spreadsheet.py" />
-        <option value="$PROJECT_DIR$/cred.txt" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="118" />
-    <option name="y" value="563" />
-    <option name="width" value="1322" />
-    <option name="height" value="826" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="1222" />
+    <option name="y" value="23" />
+    <option name="width" value="1307" />
+    <option name="height" value="1366" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -219,10 +221,20 @@
     </task>
     <servers />
   </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="2560" height="1366" extended-state="6" />
+    <frame x="1222" y="23" width="1307" height="1366" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.0775896" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15318818" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -233,9 +245,9 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32967034" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32967034" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.40031397" />
+      <window_info anchor="bottom" id="Terminal" order="8" weight="0.40031397" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="10" weight="0.5706595" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="10" visible="true" weight="0.38540033" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -286,34 +298,41 @@
     <entry file="file://$PROJECT_DIR$/easy_use.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="383">
-          <caret line="42" column="67" lean-forward="true" selection-start-line="42" selection-start-column="67" selection-end-line="42" selection-end-column="67" />
+          <caret line="42" column="67" selection-start-line="42" selection-start-column="67" selection-end-line="42" selection-end-column="67" />
           <folding>
             <element signature="e#0#41#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/importer/create_json_from_spreadsheet.py">
+    <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="553">
-          <caret line="300" column="64" lean-forward="true" selection-start-line="300" selection-start-column="42" selection-end-line="300" selection-end-column="64" />
+        <state>
+          <caret column="8" selection-start-column="8" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cred.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="12" selection-start-column="12" selection-end-column="12" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/dsp_cli/DSP_submission.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1696">
-          <caret line="177" column="21" selection-start-line="177" selection-start-column="21" selection-end-line="177" selection-end-column="21" />
+        <state relative-caret-position="816">
+          <caret line="227" column="95" selection-start-line="227" selection-start-column="8" selection-end-line="227" selection-end-column="95" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cred.txt">
+    <entry file="file://$PROJECT_DIR$/importer/create_json_from_spreadsheet.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="39" selection-start-line="2" selection-start-column="39" selection-end-line="2" selection-end-column="39" />
+        <state relative-caret-position="240">
+          <caret line="278" column="92" selection-start-line="278" selection-start-column="92" selection-end-line="278" selection-end-column="92" />
         </state>
       </provider>
     </entry>

@@ -36,6 +36,9 @@ publication_conversion = {
 
 }
 
+hca_to_ena = {'protocol_core - protocol_name': 'title',
+              'protocol_core - protocol_description': 'description'}
+
 #TODO add a more complete list
 role_conversion = {'data curator': 'curator',
                    'experimental scientist': 'experiment performer',
@@ -232,43 +235,57 @@ def get_study_information(entity):
 # TODO Check how we will cope with experiments having more than 1 sequencing/library prep protocol
 # TODO Automatically assign methods
 # TODO Assign different assays for different samples
-def get_assay_information(entity_lib, entity_seq, files):
-    assay = {}
-    description = ''
-    assay['alias'] = f"{entity_lib.id}_{entity_seq.id}"
-    if 'protocol_description' in entity_lib.content['protocol_core']:
-        description += f"{entity_lib.content['protocol_core']['protocol_description']}\n"
-    if 'protocol_description' in entity_seq.content['protocol_core']:
-        description += f"{entity_lib.content['protocol_core']['protocol_description']}\n"
-    assay['description'] = description
-    combined_entities = unpack_dictionary({**entity_lib.content, **entity_seq.content}, {})
+def get_assay_information(entity_lib, entity_seq, files, study):
+    assays = []
+    for file in files:
+        assay = {}
+        description = ''
+        assay['alias'] = f"{file.content['library_prep_id']}"
+        if 'protocol_description' in entity_seq.content['protocol_core']:
+            description += f"{entity_lib.content['protocol_core']['protocol_description']}\n"
+        assay['description'] = description
+        combined_entities = unpack_dictionary({**entity_lib.content, **entity_seq.content}, {})
 
-    assay['sampleUses'] = []
+        assay['sampleUses'] = [{'sampleRef': {'alias': file.links_by_entity['biomaterial'][0]}}]
+        assay['studyRef'] = {'studyRef': {'alias': study['alias']}}
+        #TODO map ontologies we use to library strategies enum from dsp
+        assay['attributes'] = {}
+        assay['attributes']['library_strategy'] = [{'value': 'RNA-Seq' if 'RNA sequencing' in combined_entities['method - ontology_label'] else ''}]
+        assay['attributes']['library_source'] = [{'value': 'TRANSCRIPTOMIC SINGLE CELL'}]
+        assay['attributes']['library_selection'] = [{'value': 'Oligo-dT' if combined_entities['primer'] == 'poly-dT' else ''}]
+        assay['attributes']['library_layout'] = [{'value': 'PAIRED' if combined_entities['paired_end'] else 'SINGLE'}]
+        #TODO change nominal length and nominal sdev
+        assay['attributes']['nominal_length'] = [{'value': '0' if combined_entities['paired_end'] else '0'}]
+        assay['attributes']['nominal_sdev'] = [{'value': '0' if combined_entities['paired_end'] else '0'}]
+        assay['attributes']['design_description'] = [{'value': 'unspecified'}]
+        assay['attributes']['library_name'] = [{'value': file.links_by_entity['biomaterial']}]
+        #TODO change platform
+        assay['attributes']['platform_type'] = [{'value': 'ILLUMINA'}]
+        assay['attributes']['instrument_model'] = [{'value': combined_entities['instrument_manufacturer_model - ontology_label']}]
+        #TODO add nominal_length and nominal_sdev
 
-    #TODO map ontologies we use to library strategies enum from dsp
-    assay['attributes'] = {}
-    assay['attributes']['library_strategy'] = [{'value': 'RNA-Seq' if 'RNA sequencing' in combined_entities['method - ontology_label'] else ''}]
-    assay['attributes']['library_source'] = [{'value': 'TRANSCRIPTOMIC SINGLE CELL'}]
-    assay['attributes']['library_selection'] = [{'value': 'Oligo-dT' if combined_entities['assay'] == 'poly-dT' else ''}]
-    assay['attributes']['library_layout'] = [{'value': 'PAIRED' if combined_entities['paired_end'] else 'SINGLE'}]
-    #TODO change platform
-    assay['attributes']['platform_type'] = [{'value': 'ILLUMINA'}]
-    assay['attributes']['instrument_model'] = [{'value': combined_entities['instrument_manufacturer_model - ontology_label']}]
-    #TODO add nominal_length and nominal_sdev
-    return assay
+        assays.append(assay)
+    return assays
 
-def get_assay_data_information(files):
-    assay_data = {}
-    assay_data['alias'] = 0
-    return assay_data
+def get_assay_data_information(files, entity_dict, library_prep, sequencing):
+    assay_data_list = []
+    for file in files:
+        assay_data = {}
+        assay_data['alias'] = f"{file.links_by_entity['biomaterial'][0]} - Raw data"
+        assay_data['title'] = f"{file.links_by_entity['process'][0]}"
+        assay_data['description'] = ''
+        # TODO not assume there is only one sequencing/library prep protocol
+        assay_data['attributes'] = {}
+        for sequencing_field, sequencing_value in unpack_dictionary(sequencing, {}).items():
+            assay_data['attributes'][sequencing_field] = [{'value': sequencing_value}]
+        for file_field, file_value in unpack_dictionary(file.content, {}):
+            assay_data['attributes'][file_field] = [{'value': file_value}]
 
-def correct_linking(entity_map, samples, project, study,  assays, assay_data):
-    for i in range(len(samples)):
-        n = 0
-    for sample in samples:
-        if sample['Biomaterial type'] == 'cell_suspension':
-            for assay in assays:
-                assay['sampleUses'].append({'sampleRef': {'alias': sample['alias']}})
+        assay_data['assayRefs'] = {file.content['library_prep_id']}
+        assay_data['files'] = [{'name': file.id,
+                                'type': 'bam'}]
+        assay_data_list.append(assay_data)
+        return assay_data
 
 def add_protocol_information(entity_dict, protocols):
     for sample in entity_dict['samples']:
@@ -306,7 +323,6 @@ def get_json_from_map(entity_map):
 
         if entity.type == 'protocol':
             protocols[entity.id] = entity
-        """
         if entity.concrete_type == 'library_preparation_protocol':
             library_prep_entity = entity
         if entity.concrete_type == 'sequencing_protocol':
@@ -314,20 +330,20 @@ def get_json_from_map(entity_map):
 
         if entity.concrete_type == 'sequence_file':
             entity_dict['files'].append(entity)
-        """
 
     assay_processes = {}
     entity_dict = add_protocol_information(entity_dict, protocols)
-    return entity_dict
+    """
     for file in entity_dict['files']:
         if file.links_by_entity['process'][0] not in assay_processes:
             assay_processes[file.links_by_entity['process'][0]] = [file.links_by_entity['process'][0]]
         else:
             assay_processes[file.links_by_entity['process'][0]].append(file.links_by_entity['process'][0])
         assay_processes = [file.links_by_entity['process'][0] for file in entity_dict['files']]
-    assays = get_assay_information(library_prep_entity, sequencing_entity, process)
-
-    assay_data = get_assay_data_information(files)
+    """
+    entity_dict['assays'].extend(get_assay_information(library_prep_entity, sequencing_entity, entity_dict['files'], entity_dict['study'][0]))
+    return entity_dict
+    #assay_data = get_assay_data_information(files)
 
 def write_json_to_submit(entity_dict='', directory=''):
     if directory:

@@ -117,8 +117,7 @@ class DspCLI():
         self.submission_content = rq.get(f"{self.submission['_links']['contents']['href']}", headers=self.headers).json()
 
     def show_submission_status(self):
-        if not self.submission_status:
-            self._retrieve_submission_status()
+        self._retrieve_submission_status()
         pprint(f"The submission status for submission with ID {self.submission.get('id')} is {self.submission_status}")
 
     def _retrieve_submission_status(self):
@@ -129,8 +128,7 @@ class DspCLI():
         self.submission_status = submission_status_json['status']
 
     def _retrieve_samples(self):
-        if not self.submission_content:
-            self._retrieve_submission_content()
+        self._retrieve_submission_content()
         samples = rq.get(self.submission_content['_links']['samples']['href'], headers=self.headers).json()
         self.samples = samples['_embedded']['samples']
 
@@ -226,9 +224,7 @@ class DspCLI():
     #TODO Add check for if submission is invalid
     def finish_submission(self):
         self._update_token()
-        if not self.current_project:
-            self._retrieve_project_info()
-        url_to_submit = self.current_project['_embedded']['submission']['_links']['submissionStatus']['href']
+        url_to_submit = self.submission['_links']['submissionStatus']['href']
         response = rq.put(url_to_submit, data='{"status" : "Submitted"}', headers=self.headers)
         pprint(response.json())
         self._update_token()
