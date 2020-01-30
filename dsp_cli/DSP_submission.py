@@ -2,6 +2,7 @@ import requests as rq
 from pprint import pprint
 import os
 import json as js
+from tusclient import client
 
 
 # TODO Create delete_submission()
@@ -16,7 +17,8 @@ class DspCLI():
         self.accepted_submission_types = {"project": "projects",
                                           "samples": "samples",
                                           "enaStudies": "enaStudies",
-                                          "Assay": "studies"}
+                                          "assay": "sequencingExperiments",
+                                          "assay_data": "sequencingRuns"}
         self.submission = ''
         self.team = ''
         self.current_link = ''
@@ -28,6 +30,7 @@ class DspCLI():
         self.studies = ''
         self.validation_results = ''
         self.processing_status = ''
+        self.client = ''
 
     # TODO create pretty version of list_submissions (show_submissions?)
     def list_submissions(self):
@@ -162,12 +165,12 @@ class DspCLI():
 
         # Sanity check for submission types
         while True:
-            if not any([submittable_type == accepted_type for accepted_type in self.accepted_submission_types]):
+            if not any([submittable_type == accepted_type for accepted_type in self.accepted_submission_types.values()]):
                 print(f"Please select a number of one of the accepted submittable types from this list:")
                 for i in range(len(list(self.accepted_submission_types.keys()))):
                     print(f"{i + 1} - {list(self.accepted_submission_types.keys())[i]}")
                 submittable_type_index = int(input()) - 1
-                if 0 < submittable_type_index < len(list(self.accepted_submission_types.keys())):
+                if 0 <= submittable_type_index < len(list(self.accepted_submission_types.keys())):
                     submittable_type = self.accepted_submission_types[list(self.accepted_submission_types.keys())[submittable_type_index]]
                     break
                 else:
@@ -181,7 +184,7 @@ class DspCLI():
         new_submission = rq.post(url=create_submittable_url, json=json_content, headers=self.headers)
 
         if not new_submission.status_code < 210:
-            print(f"An error ocurred while submitting. Error:\n{new_submission.json()}")
+            pprint(f"An error ocurred while submitting. Error:\n{new_submission.json()}")
         else:
             print("Submission successfully done!")
             self._update_token()
@@ -256,11 +259,14 @@ class DspCLI():
         else:
             self.processing_status = rq.get(self.submission['_links']['processingStatuses']['href'], headers=self.headers).json()
 
+    def _set_client(self):
+        # TODO automate based on root
+        self.client = client.TusClient(url='https://submission.ebi.ac.uk/files/')
+
     def show_processing_statuses(self):
         if not self.processing_status:
             self._retrieve_processing_statuses()
 
-        pprint(self.processing_status)
         print(f"For submission with ID {self.submission['id']}, processing statuses are:\n")
         for status in self.processing_status['_embedded']['processingStatuses']:
             print(f"{status['submittableType']}: alias {status['alias']}:")
@@ -268,6 +274,20 @@ class DspCLI():
             print(f"\tArchive: {status['archive']}")
             print(f"\tAccession: {status.get('accession')}\n")
 
+    def upload_file(self, path_to_file):
+        if '-test' in self.root:
+            print("Test environment is not currently supported")
+            return
+        if not self.submission:
+            self.select_submission()
+        if not self.client:
+            self._set_client()
+
+        uploader = self.client.uploader(file_path=path_to_file, chunk_size=102400,
+                                        metadata={'name': path_to_file.strip().split('/')[-1],
+                                                  'submissionID': self.submission.get('id'),
+                                                  'jwtToken': self.token})
+        uploader.upload()
 
 
     def _back_to_root_api(self):

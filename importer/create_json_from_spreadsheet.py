@@ -32,8 +32,7 @@ publication_conversion = {
     'authors': 'authors',
     'doi': 'doi',
     'title': 'articleTitle',
-    'pmid': 'pubmedId',
-
+    'pmid': 'pubmedId'
 }
 
 hca_to_ena = {'protocol_core - protocol_name': 'title',
@@ -143,6 +142,7 @@ def get_project_information(entity):
     project['attributes'] = {}
     project['contacts'] = []
     project['fundings'] = []
+    project['publications'] = [{}]
     for content, value in entity.content.items():
         if isinstance(value, dict):
             for sub_content, sub_value in unpack_dictionary(value, {}).items():
@@ -161,8 +161,7 @@ def get_project_information(entity):
                     if contributor_field in hca_to_biostudies:
                         project['contacts'][contributor_index][hca_to_biostudies[contributor_field]] = contributor_value
                     else:
-                        # Can't add additional properties to contacts
-                        continue
+                        project['contacts'][contributor_index]['attributes'] = {'value': contributor_value}
                 contributor_index += 1
 
         elif "funders" in content:
@@ -174,7 +173,8 @@ def get_project_information(entity):
                 project['fundings'].append(funding)
 
         elif 'publications' in content:
-            # TODO for when not time restriction
+            # TODO
+            #project['publications'][0][publication_conversion[]]
             continue
 
         elif not any(content in banned_properties for banned_properties in ['describedBy', 'schema_type']):
@@ -247,7 +247,7 @@ def get_assay_information(entity_lib, entity_seq, files, study):
         combined_entities = unpack_dictionary({**entity_lib.content, **entity_seq.content}, {})
 
         assay['sampleUses'] = [{'sampleRef': {'alias': file.links_by_entity['biomaterial'][0]}}]
-        assay['studyRef'] = {'studyRef': {'alias': study['alias']}}
+        assay['studyRef'] = {'alias': study['alias']}
         #TODO map ontologies we use to library strategies enum from dsp
         assay['attributes'] = {}
         assay['attributes']['library_strategy'] = [{'value': 'RNA-Seq' if 'RNA sequencing' in combined_entities['method - ontology_label'] else ''}]
@@ -258,7 +258,7 @@ def get_assay_information(entity_lib, entity_seq, files, study):
         assay['attributes']['nominal_length'] = [{'value': '0' if combined_entities['paired_end'] else '0'}]
         assay['attributes']['nominal_sdev'] = [{'value': '0' if combined_entities['paired_end'] else '0'}]
         assay['attributes']['design_description'] = [{'value': 'unspecified'}]
-        assay['attributes']['library_name'] = [{'value': file.links_by_entity['biomaterial']}]
+        assay['attributes']['library_name'] = [{'value': file.links_by_entity['biomaterial'][0]}]
         #TODO change platform
         assay['attributes']['platform_type'] = [{'value': 'ILLUMINA'}]
         assay['attributes']['instrument_model'] = [{'value': combined_entities['instrument_manufacturer_model - ontology_label']}]
@@ -267,25 +267,25 @@ def get_assay_information(entity_lib, entity_seq, files, study):
         assays.append(assay)
     return assays
 
-def get_assay_data_information(files, entity_dict, library_prep, sequencing):
+def get_assay_data_information(files, sequencing):
     assay_data_list = []
     for file in files:
         assay_data = {}
-        assay_data['alias'] = f"{file.links_by_entity['biomaterial'][0]} - Raw data"
+        assay_data['alias'] = file.id
         assay_data['title'] = f"{file.links_by_entity['process'][0]}"
         assay_data['description'] = ''
         # TODO not assume there is only one sequencing/library prep protocol
         assay_data['attributes'] = {}
-        for sequencing_field, sequencing_value in unpack_dictionary(sequencing, {}).items():
+        for sequencing_field, sequencing_value in unpack_dictionary(sequencing.content, {}).items():
             assay_data['attributes'][sequencing_field] = [{'value': sequencing_value}]
-        for file_field, file_value in unpack_dictionary(file.content, {}):
+        for file_field, file_value in unpack_dictionary(file.content, {}).items():
             assay_data['attributes'][file_field] = [{'value': file_value}]
 
-        assay_data['assayRefs'] = {file.content['library_prep_id']}
+        assay_data['assayRefs'] = {'alias': file.content['library_prep_id']}
         assay_data['files'] = [{'name': file.id,
                                 'type': 'bam'}]
         assay_data_list.append(assay_data)
-        return assay_data
+    return assay_data_list
 
 def add_protocol_information(entity_dict, protocols):
     for sample in entity_dict['samples']:
@@ -308,6 +308,7 @@ def get_json_from_map(entity_map):
         'files': [],
         'samples': [],
         'assays': [],
+        'assay_data': [],
         'projects': [],
         'study': [],
         'sequence_processes': []
@@ -331,19 +332,10 @@ def get_json_from_map(entity_map):
         if entity.concrete_type == 'sequence_file':
             entity_dict['files'].append(entity)
 
-    assay_processes = {}
     entity_dict = add_protocol_information(entity_dict, protocols)
-    """
-    for file in entity_dict['files']:
-        if file.links_by_entity['process'][0] not in assay_processes:
-            assay_processes[file.links_by_entity['process'][0]] = [file.links_by_entity['process'][0]]
-        else:
-            assay_processes[file.links_by_entity['process'][0]].append(file.links_by_entity['process'][0])
-        assay_processes = [file.links_by_entity['process'][0] for file in entity_dict['files']]
-    """
     entity_dict['assays'].extend(get_assay_information(library_prep_entity, sequencing_entity, entity_dict['files'], entity_dict['study'][0]))
+    entity_dict['assay_data'].extend(get_assay_data_information(entity_dict['files'], sequencing_entity))
     return entity_dict
-    #assay_data = get_assay_data_information(files)
 
 def write_json_to_submit(entity_dict='', directory=''):
     if directory:
