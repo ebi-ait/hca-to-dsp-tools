@@ -2,6 +2,7 @@ import requests as rq
 import json as js
 from datetime import datetime
 import os
+from pprint import pprint
 
 #TODO change name afterwards
 

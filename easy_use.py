@@ -86,7 +86,7 @@ def main():
 
         # Get JSON object list from the entity map
         json_list = get_json_from_map(entity_map)
-
+        del json_list['files']
         # Write to folder
         output_path = input("Please provide with the folder path for the submittable outputs: ")
         write_json_to_submit(json_list, output_path)
