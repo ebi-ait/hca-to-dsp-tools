@@ -14,10 +14,10 @@ class DspCLI():
         self.team_url = f"{self.root}user/teams/"
         self.headers = {'Content-Type': 'application/json;charset=UTF-8', 'Accept': 'application/hal+json',
                         'Authorization': f'Bearer {self.token}'}
-        self.accepted_submission_types = {"project": "projects",
+        self.accepted_submission_types = {"projects": "projects",
                                           "samples": "samples",
-                                          "enaStudies": "enaStudies",
-                                          "assay": "sequencingExperiments",
+                                          "study": "enaStudies",
+                                          "assays": "sequencingExperiments",
                                           "assay_data": "sequencingRuns"}
         self.submission = ''
         self.team = ''
@@ -165,7 +165,7 @@ class DspCLI():
 
         # Sanity check for submission types
         while True:
-            if not any([submittable_type == accepted_type for accepted_type in self.accepted_submission_types.values()]):
+            if not any([submittable_type == accepted_type for accepted_type in self.accepted_submission_types]):
                 print(f"Please select a number of one of the accepted submittable types from this list:")
                 for i in range(len(list(self.accepted_submission_types.keys()))):
                     print(f"{i + 1} - {list(self.accepted_submission_types.keys())[i]}")
@@ -180,7 +180,7 @@ class DspCLI():
 
 
         # Create the submission
-        create_submittable_url = self.submission_content['_links'][f'{submittable_type}:create']['href']
+        create_submittable_url = self.submission_content['_links'][f'{self.accepted_submission_types[submittable_type]}:create']['href']
         new_submission = rq.post(url=create_submittable_url, json=json_content, headers=self.headers)
 
         if not new_submission.status_code < 210:
@@ -214,9 +214,10 @@ class DspCLI():
         i = 1
         for result in self.validation_results['_embedded']['validationResults']:
             validation_result = rq.get(result['_links']['self']['href'], headers=self.headers).json()
-            submittable = rq.get(validation_result['_links']['submittable']['href'], headers=self.headers).json()
-            print(f"{i} - For sample with alias {submittable['alias']}, validation results are as following:\n"
-                  f"{newline_tab.join([f'{key}:{value}' for key, value in result['overallValidationOutcomeByAuthor'].items()])}")
+            if 'submittable' in  validation_result['_links']:
+                submittable = rq.get(validation_result['_links']['submittable']['href'], headers=self.headers).json()
+                print(f"{i} - For sample with alias {submittable['alias']}, validation results are as following:\n"
+                      f"\t{newline_tab.join([f'{key}:{value}' for key, value in result['overallValidationOutcomeByAuthor'].items()])}")
             i += 1
 
     def _retrieve_validation_results(self):
@@ -240,19 +241,18 @@ class DspCLI():
             break
         files = [f"{directory}/{file}" for file in files if file.endswith('.json')]
         for file in files:
-            submission_type = file.split('/')[-1].split('_')[0]
+            submission_type = file.split('/')[-1].split('__')[0]
+            print(submission_type)
             with open(file, "r") as f:
                 submission = js.loads(f.read())
             self.submit_submittable(submission_type, submission)
-            #submission_function = getattr(self, f"submit_new_{submission_type}")
-            #submission_function(submission)
             self._update_token()
         self._update_token()
 
     def _retrieve_processing_statuses(self):
         if not self.submission:
             self.select_submission()
-            self._retrieve_submission_status()
+        self._retrieve_submission_status()
 
         if not self.submission_status == 'Completed':
             self.processing_status = 'Submission is not completed, therefore no processing status can be retrieved'
@@ -283,7 +283,7 @@ class DspCLI():
         if not self.client:
             self._set_client()
 
-        uploader = self.client.uploader(file_path=path_to_file, chunk_size=102400,
+        uploader = self.client.uploader(file_path=path_to_file, chunk_size=1024000,
                                         metadata={'name': path_to_file.strip().split('/')[-1],
                                                   'submissionID': self.submission.get('id'),
                                                   'jwtToken': self.token})

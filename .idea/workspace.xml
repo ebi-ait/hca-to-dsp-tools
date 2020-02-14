@@ -2,25 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f25249f2-0979-4d7c-ad8b-16a4a5361f9c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/test_for_json/assay_data_207B_peripheral_blood_cells - Raw data.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/assays_library_prep_207B.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/assays_library_prep_313C.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/projects_AdultHemOrgans.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_207B.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_207B_bone_marrow.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_207B_bone_marrow_cells.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_207B_peripheral_blood.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_207B_peripheral_blood_cells.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_207B_spleen.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_207B_spleen_cells.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_313C.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_313C_bone_marrow.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_313C_bone_marrow_cells.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_313C_peripheral_blood.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_313C_peripheral_blood_cells.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_313C_spleen.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/samples_313C_spleen_cells.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_for_json/study_AdultHemOrgans.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dsp_cli/DSP_submission.py" beforeDir="false" afterPath="$PROJECT_DIR$/dsp_cli/DSP_submission.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/importer/create_json_from_spreadsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/importer/create_json_from_spreadsheet.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -47,8 +32,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/importer/create_json_from_spreadsheet.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="392">
-              <caret line="350" column="48" selection-start-line="350" selection-start-column="48" selection-end-line="350" selection-end-column="48" />
+            <state relative-caret-position="-805">
+              <caret line="253" column="67" selection-start-line="253" selection-start-column="62" selection-end-line="253" selection-end-column="67" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -56,11 +41,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/easy_use.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="302">
-              <caret line="87" column="30" selection-start-line="87" selection-start-column="30" selection-end-line="87" selection-end-column="30" />
+            <state relative-caret-position="173">
+              <caret line="59" column="94" selection-start-line="59" selection-start-column="94" selection-end-line="59" selection-end-column="94" />
               <folding>
                 <element signature="e#0#41#0" expanded="true" />
               </folding>
@@ -71,8 +56,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dsp_cli/DSP_submission.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4140">
-              <caret line="280" column="31" selection-start-line="280" selection-start-column="31" selection-end-line="280" selection-end-column="31" />
+            <state relative-caret-position="392">
+              <caret line="281" column="36" lean-forward="true" selection-start-line="281" selection-start-column="36" selection-end-line="281" selection-end-column="36" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -80,11 +65,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="6" selection-start-line="1" selection-start-column="6" selection-end-line="1" selection-end-column="6" />
+            <state relative-caret-position="45">
+              <caret line="3" column="10" selection-start-line="3" selection-start-column="10" selection-end-line="3" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -93,7 +78,7 @@
         <entry file="file://$PROJECT_DIR$/cred.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="30">
-              <caret line="2" column="28" selection-start-line="2" selection-start-column="28" selection-end-line="2" selection-end-column="28" />
+              <caret line="2" column="23" selection-start-line="2" selection-start-column="23" selection-end-line="2" selection-end-column="23" />
             </state>
           </provider>
         </entry>
@@ -128,6 +113,8 @@
       <find>finish</find>
       <find>studyRef</find>
       <find>finish_</find>
+      <find>OTHER</find>
+      <find>show_pro</find>
     </findStrings>
     <replaceStrings>
       <replace>_retrieve_token</replace>
@@ -145,17 +132,19 @@
         <option value="$PROJECT_DIR$/dsp_cli/Readme.md" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/requirements.txt" />
-        <option value="$PROJECT_DIR$/cred.txt" />
-        <option value="$PROJECT_DIR$/dsp_cli/DSP_submission.py" />
-        <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/importer/create_json_from_spreadsheet.py" />
         <option value="$PROJECT_DIR$/easy_use.py" />
+        <option value="$PROJECT_DIR$/upload_bam.py" />
+        <option value="$PROJECT_DIR$/importer/create_json_from_spreadsheet.py" />
+        <option value="$PROJECT_DIR$/dsp_cli/DSP_submission.py" />
+        <option value="$PROJECT_DIR$/cred.txt" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="23" />
-    <option name="width" value="1440" />
+    <option name="x" value="118" />
+    <option name="y" value="563" />
+    <option name="width" value="1322" />
     <option name="height" value="826" />
   </component>
   <component name="ProjectView">
@@ -179,7 +168,12 @@
             <path>
               <item name="hca-to-dsp-tools" type="b2602c69:ProjectViewProjectNode" />
               <item name="hca-to-dsp-tools" type="462c0819:PsiDirectoryNode" />
-              <item name="importer" type="462c0819:PsiDirectoryNode" />
+              <item name="Peng_submission" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="hca-to-dsp-tools" type="b2602c69:ProjectViewProjectNode" />
+              <item name="hca-to-dsp-tools" type="462c0819:PsiDirectoryNode" />
+              <item name="test_submission" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="hca-to-dsp-tools" type="b2602c69:ProjectViewProjectNode" />
@@ -202,7 +196,10 @@
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/test_update" />
+      <recent name="$PROJECT_DIR$/Peng_submission" />
       <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/test_submission" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -240,9 +237,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="837" extended-state="6" />
+    <frame x="-8" y="23" width="2560" height="1366" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.23396759" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.13076015" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -253,9 +251,9 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32967034" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32967034" />
-      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49979037" visible="true" weight="0.2295302" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.49979037" visible="true" weight="0.39795917" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50062895" side_tool="true" weight="0.26373628" />
-      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49937108" weight="0.45637584" />
+      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49937108" weight="0.27943486" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -263,6 +261,22 @@
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="setValue">
+      <expression>
+        <expression-string>'Cells were loaded according to the standard protocol of the Chromium single cell 3’ V2 kit. Before transforming in unaligned BAM, R1, R2 and I1 files were sorted and filtered and &lt;2000 reads were discarded as singletons.'</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>'Cells were loaded according to the standard protocol of the Chromium single cell 3’ V2 kit. Prior to BAM conversion, Fastq files were checked for singletons and 
+'</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FhaS5lYmkuYWMudWsvc3AiLCJqdGkiOiJocFY1QWtHZ0hhUDVNRWlpNllNaHJRIiwiaWF0IjoxNTgxNDIxODk4LCJzdWIiOiJ1c3ItYTViZTllNTctM2Q3MC00YTBjLWI4MjMtMjJiMzY4OGUyMWRhIiwiZW1haWwiOiJlbnJpcXVlQGViaS5hYy51ayIsIm5pY2tuYW1lIjoiZW5yaXF1ZSIsIm5hbWUiOiJFbnJpcXVlIFNhcGVuYSBWZW50dXJhIiwiZG9tYWlucyI6WyJzdWJzLnRlYW0tMjAiLCJzdWJzLnRlYW0tMiJdLCJleHAiOjE1ODE1MDgyOTh9.J63PyVFBbb9iLjwPLSnEgMk1AzoWQsIgQXnD_ROrp7RwvBMMeSCLA-7OokkxYUOT6vi13WhpqEvycTRvtAmMibOJUlP7yJ9ppfXjOV62XtA58SLAkd43pfMa05Ur4dn7bRE5EaMGj_EckG8_ZXM68_Sj9GZ9GPmrtOnJYi4w38ADVw72GnY9k1Ggo1Kq4VPcyEGlRfmZxgbIPy8cTY14XluQ0Eme3gJuN9qSVPu-X6W1mPJRiu7UL5IrTIgISAIZjajbpwMREuWy8VbTvlR_f_r64IO71Kb-1TMrUZ-Fskrrewc9kXIcItZXUHUfAbG3gIPnG8Xh0XF7YbzURTb3rA'</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>'/Users/enrique/Downloads/1f0c538e-f690-4807-9bcd-4691458773f6.csv/SIGAD9_S1_L001_I1_001.bam'</expression-string>
         <language-id>Python</language-id>
@@ -364,47 +378,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dsp_cli/DSP_submission.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4140">
-          <caret line="280" column="31" selection-start-line="280" selection-start-column="31" selection-end-line="280" selection-end-column="31" />
-          <folding>
-            <element signature="e#0#21#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="6" selection-start-line="1" selection-start-column="6" selection-end-line="1" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cred.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="28" selection-start-line="2" selection-start-column="28" selection-end-line="2" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/requirements.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="5" selection-start-line="2" selection-start-column="5" selection-end-line="2" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/importer/create_json_from_spreadsheet.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="392">
-          <caret line="350" column="48" selection-start-line="350" selection-start-column="48" selection-end-line="350" selection-end-column="48" />
-          <folding>
-            <element signature="e#0#21#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test_elisa/assay_data_SIGAB10_S9_L002_10xv2.bam.json">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -422,13 +395,60 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Peng_submission/assays_lib_1.json">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/requirements.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="5" selection-start-line="2" selection-start-column="5" selection-end-line="2" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/easy_use.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="302">
-          <caret line="87" column="30" selection-start-line="87" selection-start-column="30" selection-end-line="87" selection-end-column="30" />
+        <state relative-caret-position="173">
+          <caret line="59" column="94" selection-start-line="59" selection-start-column="94" selection-end-line="59" selection-end-column="94" />
           <folding>
             <element signature="e#0#41#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cred.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="23" selection-start-line="2" selection-start-column="23" selection-end-line="2" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/importer/create_json_from_spreadsheet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-805">
+          <caret line="253" column="67" selection-start-line="253" selection-start-column="62" selection-end-line="253" selection-end-column="67" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dsp_cli/DSP_submission.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="392">
+          <caret line="281" column="36" lean-forward="true" selection-start-line="281" selection-start-column="36" selection-end-line="281" selection-end-column="36" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/upload_bam.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" column="10" selection-start-line="3" selection-start-column="10" selection-end-line="3" selection-end-column="10" />
         </state>
       </provider>
     </entry>

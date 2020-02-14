@@ -143,7 +143,7 @@ def get_project_information(entity):
     project['attributes'] = {}
     project['contacts'] = []
     project['fundings'] = []
-    project['publications'] = [{}]
+    project['publications'] = []
     for content, value in entity.content.items():
         if isinstance(value, dict):
             for sub_content, sub_value in unpack_dictionary(value, {}).items():
@@ -174,7 +174,7 @@ def get_project_information(entity):
                 project['fundings'].append(funding)
 
         elif 'publications' in content:
-            # TODO
+            # TODO When time
             #project['publications'][0][publication_conversion[]]
             continue
 
@@ -251,7 +251,7 @@ def get_assay_information(entity_lib, entity_seq, files, study):
         assay['studyRef'] = {'alias': study['alias']}
         #TODO map ontologies we use to library strategies enum from dsp
         assay['attributes'] = {}
-        assay['attributes']['library_strategy'] = [{'value': 'RNA-Seq' if 'RNA sequencing' in combined_entities['method - ontology_label'] else ''}]
+        assay['attributes']['library_strategy'] = [{'value': 'OTHER'}]
         assay['attributes']['library_source'] = [{'value': 'TRANSCRIPTOMIC SINGLE CELL'}]
         assay['attributes']['library_selection'] = [{'value': 'Oligo-dT' if combined_entities['primer'] == 'poly-dT' else ''}]
         assay['attributes']['library_layout'] = [{'value': 'PAIRED' if combined_entities['paired_end'] else 'SINGLE'}]
@@ -282,7 +282,7 @@ def get_assay_data_information(files, sequencing):
         for file_field, file_value in unpack_dictionary(file.content, {}).items():
             assay_data['attributes'][file_field] = [{'value': file_value}]
 
-        assay_data['assayRefs'] = {'alias': file.content['library_prep_id']}
+        assay_data['assayRefs'] = [{'alias': file.content['library_prep_id']}]
         assay_data['files'] = [{'name': file.id,
                                 'type': 'bam'}]
         assay_data_list.append(assay_data)
@@ -349,5 +349,5 @@ def write_json_to_submit(entity_dict='', directory=''):
         if list_of_entities:
             for entity in list_of_entities:
                 json_in_string = js.dumps(entity)
-                with open(f"{directory}{entity_type}_{entity['alias']}.json", 'w') as f:
+                with open(f"{directory}{entity_type}__{entity['alias']}.json", 'w') as f:
                     f.write(json_in_string)
