@@ -299,11 +299,26 @@ class DspCLI():
 
         return json_content
 
+    def _retrieve_files(self) -> list:
+        """
+        Internal method to retrieve the files given a submission is set.
+        :returns files : list
+                         List of files available for the submission
+        """
+        response = self._get(f"{self.root_url}files/search/by-submission?submissionId={self.submission.get('id')}").json()
+        files = response.get('_embedded', {}).get('files')
+        total_pages = response.get('page', {}).get('totalPages') - 1
+        for _ in range(total_pages):
+            response = self._get(response.get('_links', {}).get('next', {}).get('href'))
+            files.extend(response.get('_embedded', {}).get('files'))
+
+        return files
+
     #TODO _retrieve_files()
 
-    def _retrieve_submittable_same_alias(self, submittable_list: list, alias: str) -> dict:
+    def _retrieve_submittable_same_alias(self, submittable_list: list, alias: str, key_to_search: str = 'alias') -> dict:
         for submittable in submittable_list:
-            if submittable.get('alias') == alias:
+            if submittable.get(key_to_search) == alias:
                 return submittable
         return False
 
@@ -911,7 +926,7 @@ class DspCLI():
 
         return self.processing_status
 
-    def _set_client(self, url):
+    def _set_client(self):
         """
         Set client based on the API root path 'tus-upload'
         :return:
@@ -919,7 +934,14 @@ class DspCLI():
         self.client = client.TusClient(url=self.root.get('tus-upload', {}).get('href'))
 
     def upload_file(self, path_to_file: str, chunk_size: int = 1024000) -> None:
-
+        """
+        Upload a file to the DSP.
+        :param path_to_file : str
+                              Path to the file
+        :param chunk_size : int
+                            Chunk size in bytes. Defaults to 10 MB
+        :returns None : None
+        """
         if not self._check_submission_availability():
             print("This submission is completed")
             return None
@@ -934,23 +956,55 @@ class DspCLI():
                                                       'jwtToken': self.token})
             for _ in tqdm(range(0, uploader.file_size, chunk_size)):
                 uploader.upload_chunk()
-            client.TusClient.uploader().upload_chunk()
         except:
             print(f"Seems like this file is giving an error. This might be due to the file being resumed from an"
                   f"upload. Trying to resume upload for file {path_to_file.strip().split('/')[-1]}")
             self.resume_file(path_to_file, chunk_size)
 
-    def resume_file(self, path_to_file: str, chunk_size: int = 1024000) -> None:
 
+
+    def resume_file(self, path_to_file: str, chunk_size: int = 1024000) -> None:
+        """
+        Resume file upload
+        :param path_to_file : str
+                              path to the file
+        :param chunk_size : int
+                            Chunk size in bytes. Defaults to 10 MB
+        :returns None : None
+        """
         if not self._check_submission_availability():
             print("This submission is completed")
             return None
 
-
-        self.client = client.TusClient(url=)
+        files = self._retrieve_files()
+        filename = path_to_file.strip().split('/')[-1]
+        file_content = self._retrieve_submittable_same_alias(files, filename, 'filename')
+        print(f"{self.root.get('tus-upload', {}).get('href')}{file_content.get('generatedTusId')}")
+        self._set_client()
+        self.client.set_headers({'Authorization': f'Bearer {self.token}'})
 
         print(f"Resuming file upload of {path_to_file.strip().split('/')[-1]}...")
-        uploader = self.client.uploader(file_path=path_to_file, chunk_size=chunk_size, headers=self.headers)
+        uploader = self.client.uploader(file_path=path_to_file, chunk_size=chunk_size, url=f"{self.root.get('tus-upload', {}).get('href')}{file_content.get('generatedTusId')}")
         offset = uploader.get_offset()
-        for _ in tqdm(range(offset, uploader.file_size, chunk_size)):
+        for _ in tqdm(range(offset, uploader.file_size, chunk_size), position=0, leave=True):
             uploader.upload_chunk()
+
+    def delete_file(self, filename: str) -> rq.Response:
+        """
+        Delete a file. Can't delete files that are being uploaded.
+        :param filename : Filename of the file that you want to re-upload
+        :return:
+        """
+        if not self._check_submission_availability():
+            print("This submission is completed, files can't be deleted")
+            return None
+
+        files = self._retrieve_files()
+        file_content = self._retrieve_submittable_same_alias(files, filename, 'filename')
+        delete_file_url = file_content.get('_links', {}).get('self', {}).get('href')
+        response = self._delete(delete_file_url)
+
+        if response.status_code == 204:
+            print("Successfully deleted file")
+
+        return response
