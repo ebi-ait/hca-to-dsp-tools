@@ -463,7 +463,7 @@ class DspCLI():
         team = {'description': description, 'centreName': centre_name}
 
         # Get the URL for teams from the API root
-        response = self._post(self.root.get('userTeams').get('href'), json=team, headers=self.headers)
+        response = self._post(self.root.get('userTeams').get('href'), data=team, headers=self.headers)
 
         if not response:
             print("Team could not be created. Please check the root URL provided is alright")
