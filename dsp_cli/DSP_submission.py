@@ -207,8 +207,7 @@ class DspCLI():
         # Update token if DELETE request was successful. Update submission deleting anything from a submission.
         if response.status_code == 204:
             self._update_token()
-            if self.submission:
-                self._update_submission()
+            self._update_token()
 
         return response
     # ------------------ #
@@ -242,7 +241,7 @@ class DspCLI():
                                     Accepted submittable type
         """
         # Make sure the proper submittable_type is used
-        if submittable_type not in self.accepted_submission_types.values():
+        if submittable_type not in self.accepted_submission_types.keys():
             while True:
                 print("Please select one of the accepted submittable types")
                 self.show_accepted_submittables()
@@ -252,6 +251,8 @@ class DspCLI():
                     return submittable_type
                 else:
                     print("Please introduce a valid integer")
+        else:
+            submittable_type = self.accepted_submission_types[submittable_type]
         return submittable_type
 
     def _check_submission_availability(self) -> any((None, False)):
@@ -289,7 +290,8 @@ class DspCLI():
         # If the `json_content` provided is not a dictionary, check if it's a json string or a file path
         if isinstance(json_content, str):
             try:
-                json_content = js.loads(json_content)
+                with open(json_content, 'r') as f:
+                    json_content = js.load(f)
             except js.decoder.JSONDecodeError:
                 if not os.path.exists(json_content):
                     print("The provided path to the file doesn't exist")
@@ -726,6 +728,7 @@ class DspCLI():
             replaced_submittable = self._put(replace_url, json_content)
             if replaced_submittable.status_code < 210:
                 print(f"Replacement of {submittable_type} {json_content.get('alias')} was successful!")
+                self._update_submission()
             return replaced_submittable
 
     def delete_submittable(self, submittable_type: str, alias: str = ""):
@@ -756,8 +759,10 @@ class DspCLI():
             # Let the user decide how many submittables wants to print in screen at once
             while True:
                 try:
-                    step = int(input("Aliases are going to be printed with a number. Please select how many do you want to"
-                                     "print at once in screen"))
+                    step = int(input("Aliases are going to be printed with a number. Please select how many do you want"
+                                     " to print at once in screen"))
+                    if step > len(submittable_list):
+                        step = len(submittable_list)
                     break
                 except ValueError:
                     print("Please input a valid integer or press <ctrl> + <c> to exit")
@@ -784,11 +789,11 @@ class DspCLI():
                 return None
             else:
                 submittable = submittable_list[index]
-                delete_url = submittable.get('_links', {}).get('self:delete', {}).get('href')
-                deleted_submittable = self._delete(delete_url)
-                if deleted_submittable.status_code == 204:
-                    print(f"Submittable {submittable.get('alias')} was deleted successfully")
-                return deleted_submittable
+        delete_url = submittable.get('_links', {}).get('self:delete', {}).get('href')
+        deleted_submittable = self._delete(delete_url)
+        if deleted_submittable.status_code == 204:
+            print(f"Submittable {submittable.get('alias')} was deleted successfully")
+        return deleted_submittable
 
     def show_validation_results(self) -> list:
         """
@@ -815,13 +820,18 @@ class DspCLI():
                 print(f"Output will be saved to {filename}")
                 write_to = open(filename, "w")
 
-        # Retrieve the validation results. Extracting the alias along requires extra steps
+        # Print the validation results. Extracting the alias along requires extra steps
         for index, result in enumerate(validation_results):
+            newline_tab = '\n\t\t'
+            alias_list = self._retrieve_validation_alias(result)
+            for alias in alias_list:
+                write_to.write(f"{index + 1} - For submittable with alias {alias}, validation results are as following:\n"
+                               f"\t\t{newline_tab.join([f'{key}:{value}' for key, value in result['overallValidationOutcomeByAuthor'].items()])}\n\n")
+            """
             validation_result = self._get(result.get('_links', {}).get('self', {}).get('href'))
             if not validation_result:
                 continue
             validation_result = validation_result.json()
-            newline_tab = '\n\t\t'
             if 'submittable' in validation_result['_links']:
                 submittable = self._get(validation_result['_links']['submittable']['href'], headers=self.headers).json()
                 write_to.write(f"{index + 1} - For submittable with alias {submittable['alias']}, validation results are as following:\n"
@@ -836,21 +846,46 @@ class DspCLI():
                     file_content = self._get(f"{self.root_url}files/{uuid}").json()
                     write_to.write(f"{index + 1} - For submittable with alias {file_content['filename']}, validation results are as following:\n"
                           f"\t\t{newline_tab.join([f'{key}:{value}' for key, value in validation_result['overallValidationOutcomeByAuthor'].items()])}\n\n")
-
+            """
         # If writing to a log, close the file.
         if sys.stdout != write_to:
             write_to.close()
 
         return validation_results
 
+    def _retrieve_validation_alias(self, validation_result) -> str:
+        specific_validation_result = self._get(validation_result.get('_links', {}).get('self', {}).get('href')).json()
+        if not specific_validation_result:
+            return ""
+        alias_list = []
+        if 'submittable' in specific_validation_result['_links']:
+            submittable = self._get(specific_validation_result['_links']['submittable']['href'], headers=self.headers).json()
+            alias_list.append(submittable.get('alias'))
+        else:
+            files = []
+            file_content = specific_validation_result.get('expectedResults', {}).get('FileContent')
+            for file in file_content:
+                files.append(file.get('entityUuid'))
+            for uuid in files:
+                file_content = self._get(f"{self.root_url}files/{uuid}").json()
+                alias_list.append(file_content.get('filename'))
+        return alias_list
+
     def show_validation_errors(self) -> dict:
         if not self._check_submission_availability() and not self._check_submission_blockers():
             print("Submission has no validation errors.")
             return None
         else:
-            print("Submission is either completed or has validation errors")
-        # TODO add show_validation_errors
-        i = 1
+            validation_results = self._retrieve_validation_results()
+            newline = "\n\t\t"
+            for result in validation_results:
+                alias_list = self._retrieve_validation_alias(result)
+                if 'errorMessages' in result:
+                    print(alias_list[0])
+                    print("\n\n".join([f"\tSchema: {key}\n\tError(s):\n\t\t{newline.join(value)}\n\n" for key, value in result.get('errorMessages', {}).items()]))
+
+        return validation_results
+
         # TODO add show_submission_summary
 
     def finish_submission(self) -> any((rq.Response, None)):
@@ -957,13 +992,13 @@ class DspCLI():
             for _ in tqdm(range(0, uploader.file_size, chunk_size)):
                 uploader.upload_chunk()
         except:
-            print(f"Seems like this file is giving an error. This might be due to the file being resumed from an"
+            print(f"Seems like this file is giving an error. This might be due to the file being resumed from a failed "
                   f"upload. Trying to resume upload for file {path_to_file.strip().split('/')[-1]}")
-            self.resume_file(path_to_file, chunk_size)
+            self.resume_file_upload(path_to_file, chunk_size)
 
 
 
-    def resume_file(self, path_to_file: str, chunk_size: int = 1024000) -> None:
+    def resume_file_upload(self, path_to_file: str, chunk_size: int = 1024000) -> None:
         """
         Resume file upload
         :param path_to_file : str
@@ -979,7 +1014,6 @@ class DspCLI():
         files = self._retrieve_files()
         filename = path_to_file.strip().split('/')[-1]
         file_content = self._retrieve_submittable_same_alias(files, filename, 'filename')
-        print(f"{self.root.get('tus-upload', {}).get('href')}{file_content.get('generatedTusId')}")
         self._set_client()
         self.client.set_headers({'Authorization': f'Bearer {self.token}'})
 
