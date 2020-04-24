@@ -5,13 +5,136 @@ import json as js
 from tusclient import client
 import sys
 from tqdm import tqdm
+from smart_open import open as op
+from six.moves.urllib.parse import urljoin
+
+import boto3
+from tusclient.fingerprint import fingerprint
+from tusclient.exceptions import TusUploadFailed, TusCommunicationError
+import hashlib
+from six import iteritems, b, wraps, MAXSIZE
 
 # TODO Create delete_submission()
 # TODO Create detect_validation_errors()
 # TODO add change_release_date()
 # TODO add retrieve_schemas and show_schemas
+# TODO MOVE SUBMISSSION TO DSP
 
-class DspCLI():
+DEFAULT_HEADERS = {"Tus-Resumable": "1.0.0"}
+DEFAULT_CHUNK_SIZE = MAXSIZE
+CHECKSUM_ALGORITHM_PAIR = ("sha1", hashlib.sha1,)
+
+class CustomUploader(client.Uploader):
+    def __init__(self,file_size=None, file_path=None, file_stream=None, url=None, client=None,
+                 chunk_size=None, metadata=None, retries=0, retry_delay=30,
+                 store_url=False, url_storage=None, fingerprinter=None,
+                 log_func=None, upload_checksum=False):
+        self.file_stream_size = file_size
+
+        if file_path is None and file_stream is None:
+            raise ValueError("Either 'file_path' or 'file_stream' cannot be None.")
+
+        if url is None and client is None:
+            raise ValueError("Either 'url' or 'client' cannot be None.")
+
+        if store_url and url_storage is None:
+            raise ValueError("Please specify a storage instance to enable resumablility.")
+
+        self.file_path = file_path
+        self.file_stream = file_stream
+        self.stop_at = self.file_size
+        self.client = client
+        self.metadata = metadata or {}
+        self.store_url = store_url
+        self.url_storage = url_storage
+        self.fingerprinter = fingerprinter or fingerprint.Fingerprint()
+        self.url = url or self.get_url()
+        self.offset = self.get_offset()
+        self.chunk_size = chunk_size or self.DEFAULT_CHUNK_SIZE
+        self.request = None
+        self.retries = retries
+        self._retried = 0
+        self.retry_delay = retry_delay
+        self.log_func = log_func
+        self.upload_checksum = upload_checksum
+        self.__checksum_algorithm_name, self.__checksum_algorithm = \
+            self.CHECKSUM_ALGORITHM_PAIR
+
+    def get_file_size(self):
+        """
+        Return size of the file.
+        """
+        if self.file_stream_size:
+            return self.file_stream_size
+        stream = self.get_file_stream()
+        stream.seek(0, os.SEEK_END)
+        return stream.tell()
+
+    @property
+    def file_size(self):
+        """
+        Return size of the file.
+        """
+        if self.file_stream_size:
+            return self.file_stream_size
+        stream = self.get_file_stream()
+        stream.seek(0, os.SEEK_END)
+        return stream.tell()
+
+    @property
+    def checksum_algorithm(self):
+        """The checksum algorithm to be used for the Upload-Checksum extension.
+        """
+        return self.__checksum_algorithm
+
+    @property
+    def checksum_algorithm_name(self):
+        """The name of the checksum algorithm to be used for the Upload-Checksum
+        extension.
+        """
+        return self.__checksum_algorithm_name
+
+    def create_url(self):
+        """
+        Return upload url.
+
+        Makes request to tus server to create a new upload url for the required file upload.
+        """
+        headers = self.headers
+        headers['upload-length'] = str(self.file_size)
+        headers['upload-metadata'] = ','.join(self.encode_metadata())
+        print(self.client.url)
+        print(headers)
+        resp = rq.post(self.client.url, headers=headers)
+        print(resp.headers)
+        url = resp.headers.get("location")
+        if url is None:
+            msg = 'Attempt to retrieve create file url with status {}'.format(resp.status_code)
+            raise TusCommunicationError(msg, resp.status_code, resp.content)
+        return urljoin(self.client.url, url)
+
+
+class CustomClient(client.TusClient):
+
+    def __init__(self, url, headers=None, file_size=None):
+        super(CustomClient, self).__init__(url, headers)
+        self.file_size = file_size
+
+    def uploader(self, *args, **kwargs):
+        """
+        Return uploader instance pointing at current client instance.
+
+        Return uplaoder instance with which you can control the upload of a specific
+        file. The current instance of the tus client is passed to the uploader on creation.
+
+        :Args:
+            see tusclient.uploader.Uploader for required and optional arguments.
+        """
+        kwargs['client'] = self
+        return CustomUploader(self.file_size, *args, **kwargs)
+
+
+class DspCLI:
     def __init__(self):
         self.headers = ""
         self.user, self.password, self.root_url = self._retrieve_credentials()
@@ -27,10 +150,10 @@ class DspCLI():
                                           "assays": "sequencingExperiments",
                                           "assay_data": "sequencingRuns"}
         self.accepted_retrieval_types = {"projects": "projects",
-                                          "samples": "samples",
-                                          "enaStudies": "studies",
-                                          "sequencingExperiments": "assays",
-                                          "sequencingRuns": "assayData"}
+                                         "samples": "samples",
+                                         "enaStudies": "studies",
+                                         "sequencingExperiments": "assays",
+                                         "sequencingRuns": "assayData"}
         self.submission = ''
         self.submittables = {}
         self.team = ''
@@ -169,8 +292,8 @@ class DspCLI():
         # Update token if POST request was successful
         if response.status_code == 200:
             self._update_token()
-            if self.submission:
-                self._update_submission()
+            #if self.submission:
+            #    self._update_submission()
 
         return response
 
@@ -311,12 +434,10 @@ class DspCLI():
         files = response.get('_embedded', {}).get('files')
         total_pages = response.get('page', {}).get('totalPages') - 1
         for _ in range(total_pages):
-            response = self._get(response.get('_links', {}).get('next', {}).get('href'))
+            response = self._get(response.get('_links', {}).get('next', {}).get('href')).json()
             files.extend(response.get('_embedded', {}).get('files'))
 
         return files
-
-    #TODO _retrieve_files()
 
     def _retrieve_submittable_same_alias(self, submittable_list: list, alias: str, key_to_search: str = 'alias') -> dict:
         for submittable in submittable_list:
@@ -382,6 +503,7 @@ class DspCLI():
         self._retrieve_submission()
         self._retrieve_submission_content()
         self._retrieve_submission_status()
+        self.submittables = {}
 
     def _retrieve_credentials(self) -> (str, str, str):
         """
@@ -400,7 +522,7 @@ class DspCLI():
             root = f.readline().split('=')[-1].strip()
         return user, password, root
 
-    def _retrieve_submittables(self, submittable_type: str) -> any((list, None)):
+    def _retrieve_submittables(self, submittable_type: str, show_progress: bool=False) -> any((list, None)):
         """
         Internal method to retrieve the submittables for a submission.
 
@@ -410,26 +532,37 @@ class DspCLI():
                                                        list of submittables for the submission
         """
         # Update submission to make sure all the submittables can be loaded.
-        self._update_submission()
+        #self._update_submission()
 
         retrieval_type = self.accepted_retrieval_types[submittable_type]
 
         submittables = self._get(self.submission_content.get('_links', {}).get(submittable_type).get('href')).json()
+        total_elements = submittables.get('page', {}).get('totalElements')
         self.submittables[submittable_type] = submittables.get('_embedded', {}).get(retrieval_type)
 
         # Deal with paginated answer
         if self.submittables[submittable_type]:
+            if show_progress:
+                prog = tqdm(desc=f'{submittable_type}', total=total_elements, unit=submittable_type, position=0,
+                            leave=True)
+                rest = total_elements % 20
             while True:
                 submittables = self._get(submittables.get('_links', {}).get('next', {}).get('href'))
                 if not submittables:
                     break
                 submittables = submittables.json()
                 self.submittables[submittable_type].extend(submittables.get('_embedded', {}).get(retrieval_type))
+                if show_progress:
+                    prog.update(20)
+
+        if show_progress:
+            prog.update(rest)
+            prog.close()
 
         # Return a list of the submittables of the `submittable_type`.
         return self.submittables[submittable_type]
 
-    def _retrieve_validation_results(self) -> list:
+    def _retrieve_validation_results(self, show_progress: bool=False) -> list:
         """
         Internal method to retrieve the validation results for a submission.
         :returns validation_results : list
@@ -438,13 +571,23 @@ class DspCLI():
         # Retrieve validation results
         validation_results_page = self._get(self.submission.get('_links', {}).get('validationResults', {}).get('href')).json()
         total_pages = validation_results_page.get('page', {}).get('totalPages', 1)
+        total_elements = validation_results_page.get('page', {}).get('totalElements', 1)
         validation_results = validation_results_page.get('_embedded', {}).get('validationResults')
 
+        if show_progress:
+            prog = tqdm(desc='Validation results', total=total_elements, unit='Validation results ', position=0,
+                            leave=True)
+            rest = total_elements % 20
         # Deal with pagination
         for _ in range(total_pages - 1):
             validation_results_page = self._get(
                 validation_results_page.get('_links', {}).get('next', {}).get('href')).json()
             validation_results.extend(validation_results_page.get('_embedded', {}).get('validationResults'))
+            if show_progress:
+                prog.update(20)
+        if show_progress:
+            prog.update(rest)
+            prog.close()
 
         return validation_results
 
@@ -641,7 +784,7 @@ class DspCLI():
 
         # Retrieve the submittables of that type for the submission
         print(f"Retrieving all {submittable_type}. This might take a while...")
-        submittables = self._retrieve_submittables(submittable_type)
+        submittables = self._retrieve_submittables(submittable_type, show_progress=True)
         if not submittables:
             return None
 
@@ -716,10 +859,11 @@ class DspCLI():
         submittable_type = self._check_submittable_type(submittable_type)
 
         # Retrieve submittable objects
-        submittable_list = self._retrieve_submittables(submittable_type)
+        if not self.submittables:
+            self._retrieve_submittables(submittable_type)
 
         # Parse the submittable list to find the submittable with the same alias as the one provided and replace it.
-        submittable = self._retrieve_submittable_same_alias(submittable_list, json_content.get('alias'))
+        submittable = self._retrieve_submittable_same_alias(self.submittables[submittable_type], json_content.get('alias'))
         if not submittable:
             print(f"Couldn't find submittable with alias {json_content.get('alias')} in current submission")
             return None
@@ -728,7 +872,9 @@ class DspCLI():
             replaced_submittable = self._put(replace_url, json_content)
             if replaced_submittable.status_code < 210:
                 print(f"Replacement of {submittable_type} {json_content.get('alias')} was successful!")
-                self._update_submission()
+                #self._update_submission()
+            else:
+                print(f"Problem with replacement of {submittable_type} {json_content.get('alias')}")
             return replaced_submittable
 
     def delete_submittable(self, submittable_type: str, alias: str = ""):
@@ -795,6 +941,7 @@ class DspCLI():
             print(f"Submittable {submittable.get('alias')} was deleted successfully")
         return deleted_submittable
 
+    #TODO Use submittable info instead of going to ValidationResults endpoint (massively faster)
     def show_validation_results(self) -> list:
         """
         Show all validation results for a submission
@@ -807,7 +954,8 @@ class DspCLI():
             return None
 
         # Retrieve validation results
-        validation_results = self._retrieve_validation_results()
+        print("Retrieving the validation results...")
+        validation_results = self._retrieve_validation_results(show_progress=True)
 
         # If there are more than 20 validation results, give the user the opportunity to write the output to a log
         write_to = sys.stdout
@@ -821,32 +969,21 @@ class DspCLI():
                 write_to = open(filename, "w")
 
         # Print the validation results. Extracting the alias along requires extra steps
+        print("Retrieving aliases:")
+        buffer = ""
+        prog = tqdm(desc='Alias', total=len(validation_results), unit=' Aliases', position=0,
+                    leave=True)
         for index, result in enumerate(validation_results):
             newline_tab = '\n\t\t'
             alias_list = self._retrieve_validation_alias(result)
             for alias in alias_list:
-                write_to.write(f"{index + 1} - For submittable with alias {alias}, validation results are as following:\n"
-                               f"\t\t{newline_tab.join([f'{key}:{value}' for key, value in result['overallValidationOutcomeByAuthor'].items()])}\n\n")
-            """
-            validation_result = self._get(result.get('_links', {}).get('self', {}).get('href'))
-            if not validation_result:
-                continue
-            validation_result = validation_result.json()
-            if 'submittable' in validation_result['_links']:
-                submittable = self._get(validation_result['_links']['submittable']['href'], headers=self.headers).json()
-                write_to.write(f"{index + 1} - For submittable with alias {submittable['alias']}, validation results are as following:\n"
-                      f"\t\t{newline_tab.join([f'{key}:{value}' for key, value in result['overallValidationOutcomeByAuthor'].items()])}\n\n")
-            else:
-                # Files have their own special way of showing up
-                files = []
-                file_content = validation_result.get('expectedResults', {}).get('FileContent')
-                for file in file_content:
-                    files.append(file.get('entityUuid'))
-                for uuid in files:
-                    file_content = self._get(f"{self.root_url}files/{uuid}").json()
-                    write_to.write(f"{index + 1} - For submittable with alias {file_content['filename']}, validation results are as following:\n"
-                          f"\t\t{newline_tab.join([f'{key}:{value}' for key, value in validation_result['overallValidationOutcomeByAuthor'].items()])}\n\n")
-            """
+                buffer += (f"{index + 1} - For submittable with alias {alias}, validation results are as following:\n"
+                           f"\t\t{newline_tab.join([f'{key}:{value}' for key, value in result.get('overallValidationOutcomeByAuthor', {}).items()])}\n\n")
+            prog.update(1)
+        prog.update()
+        prog.close()
+
+        write_to.write(buffer)
         # If writing to a log, close the file.
         if sys.stdout != write_to:
             write_to.close()
@@ -859,8 +996,12 @@ class DspCLI():
             return ""
         alias_list = []
         if 'submittable' in specific_validation_result['_links']:
-            submittable = self._get(specific_validation_result['_links']['submittable']['href'], headers=self.headers).json()
-            alias_list.append(submittable.get('alias'))
+            submittable = self._get(specific_validation_result.get('_links',{}).get('submittable',{}).get('href'), headers=self.headers)
+            if submittable and submittable.status_code < 210:
+                submittable = submittable.json()
+                alias_list.append(submittable.get('alias'))
+            else:
+                return None
         else:
             files = []
             file_content = specific_validation_result.get('expectedResults', {}).get('FileContent')
@@ -880,6 +1021,8 @@ class DspCLI():
             newline = "\n\t\t"
             for result in validation_results:
                 alias_list = self._retrieve_validation_alias(result)
+                if not alias_list:
+                    continue
                 if 'errorMessages' in result:
                     print(alias_list[0])
                     print("\n\n".join([f"\tSchema: {key}\n\tError(s):\n\t\t{newline.join(value)}\n\n" for key, value in result.get('errorMessages', {}).items()]))
@@ -947,10 +1090,13 @@ class DspCLI():
                                          List with all the processing statuses
         """
         # TODO retrieve paginated processing statuses
+        """
         if self._check_submission_availability():
             print("Submission is not finished")
             return None
+        """
         self._retrieve_processing_statuses()
+
 
         print(f"For submission with ID {self.submission.get('id')}, processing statuses are:\n")
         for status in self.processing_status['_embedded']['processingStatuses']:
@@ -961,18 +1107,37 @@ class DspCLI():
 
         return self.processing_status
 
-    def _set_client(self):
+    def _set_client(self, file_size=None):
         """
         Set client based on the API root path 'tus-upload'
         :return:
         """
-        self.client = client.TusClient(url=self.root.get('tus-upload', {}).get('href'))
+        self.client = CustomClient(url=self.root.get('tus-upload', {}).get('href'), file_size=file_size)
 
-    def upload_file(self, path_to_file: str, chunk_size: int = 1024000) -> None:
+    def _check_file_or_uri(self, path):
+        if os.path.exists(path):
+            return 'file'
+        elif path.startswith('s3'):
+            return 's3'
+        return 'uri'
+
+    def _get_file_size_from_s3(self,uri):
+        s3 = boto3.resource('s3')
+        area = 'hca-util-upload-area'
+        return s3.Object(area, "/".join(uri.split('/')[-2:])).content_length
+
+    def _get_file_size_general_uri(self, uri):
+        request = rq.get(uri, stream=True)
+        headers = request.headers
+        # Normalise capitalisation in headers to avoid headaches
+        headers = {key.lower:value for key, value in headers.items()}
+        return int(headers.get('content-length'))
+
+    def upload_file(self, path_to_file: str, chunk_size: int = 10240000) -> None:
         """
         Upload a file to the DSP.
         :param path_to_file : str
-                              Path to the file
+                              Path to the file (Absolute/relative/URI)
         :param chunk_size : int
                             Chunk size in bytes. Defaults to 10 MB
         :returns None : None
@@ -981,24 +1146,47 @@ class DspCLI():
             print("This submission is completed")
             return None
 
-        self._set_client()
+        file_size = None
+        # Getting the file size from file metadata is way faster than retrieving with .seek() for large files
+        if self._check_file_or_uri(path_to_file) == 's3':
+            file_size = self._get_file_size_from_s3(path_to_file)
+        elif self._check_file_or_uri(path_to_file) == 'file':
+            file_size = os.path.getsize(path_to_file)
+        else:
+            file_size = self._get_file_size_general_uri(path_to_file)
+        self._set_client(file_size=file_size)
 
         print(f"Uploading file {path_to_file.strip().split('/')[-1]}...")
         try:
-            uploader = self.client.uploader(file_path=path_to_file, chunk_size=chunk_size,
-                                            metadata={'name': path_to_file.strip().split('/')[-1],
-                                                      'submissionID': self.submission.get('id'),
-                                                      'jwtToken': self.token})
-            for _ in tqdm(range(0, uploader.file_size, chunk_size)):
-                uploader.upload_chunk()
+            with op(path_to_file, 'rb', ignore_ext=True) as f:
+
+                uploader = self.client.uploader(file_stream=f, chunk_size=chunk_size,
+                                                    metadata={'name': path_to_file.strip().split('/')[-1],
+                                                          'submissionID': self.submission.get('id'),
+                                                          'jwtToken': self.token})
+                for _ in tqdm(range(0, uploader.file_size, chunk_size), unit='B', unit_scale=True,
+                              desc=path_to_file.strip().split('/')[-1], total=uploader.file_size, position=0, leave=True):
+                    uploader.upload_chunk()
+        except KeyboardInterrupt:
+            return
+
         except:
             print(f"Seems like this file is giving an error. This might be due to the file being resumed from a failed "
                   f"upload. Trying to resume upload for file {path_to_file.strip().split('/')[-1]}")
             self.resume_file_upload(path_to_file, chunk_size)
 
+    def _file_is_finished(self, filename: str, files='') -> bool:
+        if not files:
+            files = self._retrieve_files()
+        for file in files:
+            if filename == file['filename']:
+                if file['status'] == 'UPLOADING' or file['status'] == 'INITIALIZED':
+                    return False
+                else:
+                    return True
+        return False
 
-
-    def resume_file_upload(self, path_to_file: str, chunk_size: int = 1024000) -> None:
+    def resume_file_upload(self, path_to_file: str, chunk_size: int = 10240000) -> None:
         """
         Resume file upload
         :param path_to_file : str
@@ -1013,15 +1201,26 @@ class DspCLI():
 
         files = self._retrieve_files()
         filename = path_to_file.strip().split('/')[-1]
+        if self._file_is_finished(filename, files):
+            print("File has been already uploaded")
+            return
         file_content = self._retrieve_submittable_same_alias(files, filename, 'filename')
-        self._set_client()
+        file_size = None
+        if self._check_file_or_uri(path_to_file) == 'uri':
+            file_size = self._get_file_size_from_s3(path_to_file)
+        self._set_client(file_size=file_size)
         self.client.set_headers({'Authorization': f'Bearer {self.token}'})
 
         print(f"Resuming file upload of {path_to_file.strip().split('/')[-1]}...")
-        uploader = self.client.uploader(file_path=path_to_file, chunk_size=chunk_size, url=f"{self.root.get('tus-upload', {}).get('href')}{file_content.get('generatedTusId')}")
-        offset = uploader.get_offset()
-        for _ in tqdm(range(offset, uploader.file_size, chunk_size), position=0, leave=True):
-            uploader.upload_chunk()
+        with op(path_to_file, 'rb', ignore_ext=True) as f:
+
+            uploader = self.client.uploader(file_stream=f, chunk_size=chunk_size,
+                                            url=f"{self.root.get('tus-upload', {}).get('href')}{file_content.get('generatedTusId')}")
+
+            offset = uploader.get_offset()
+            for _ in tqdm(range(offset, uploader.file_size, chunk_size), unit='B', unit_scale=True,
+                          desc=path_to_file.strip().split('/')[-1], position=0, leave=True, total=uploader.file_size - offset):
+                uploader.upload_chunk()
 
     def delete_file(self, filename: str) -> rq.Response:
         """
