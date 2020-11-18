@@ -330,7 +330,6 @@ class DspCLI:
         # Update token if DELETE request was successful. Update submission deleting anything from a submission.
         if response.status_code == 204:
             self._update_token()
-            self._update_token()
 
         return response
     # ------------------ #
@@ -666,6 +665,14 @@ class DspCLI:
 
         # Retrieve submission list and exit if there are no submissions
         submission_list = self._get(self.team.get('_links', {}).get('submissions', {}).get('href')).json()
+
+        # Deal with pagination
+        total_elements = submission_list['page']['totalElements']
+        next_page = submission_list
+        while len(submission_list['_embedded']['submissions']) < total_elements:
+            next_page = self._get(next_page['_links']['next']['href']).json()
+            submission_list['_embedded']['submissions'].extend(next_page['_embedded']['submissions'])
+
         if not submission_list:
             print(f"There are no submissions available for the user on team '{self.team.get('name')}'")
             return submission_list
@@ -1048,7 +1055,7 @@ class DspCLI:
 
         # Change status to "submitted"
         url_to_submit = self.submission.get('_links', {}).get('submissionStatus', {}).get('href')
-        response = self._put(url_to_submit, data='{"status" : "Submitted"}')
+        response = self._put(url_to_submit, data={"status" : "Submitted"})
         self._update_submission()
 
         # If successful, print it to the user
@@ -1123,7 +1130,7 @@ class DspCLI:
 
     def _get_file_size_from_s3(self,uri):
         s3 = boto3.resource('s3')
-        area = 'hca-util-upload-area'
+        area = uri.split('/')[2]
         return s3.Object(area, "/".join(uri.split('/')[-2:])).content_length
 
     def _get_file_size_general_uri(self, uri):
@@ -1217,7 +1224,9 @@ class DspCLI:
             uploader = self.client.uploader(file_stream=f, chunk_size=chunk_size,
                                             url=f"{self.root.get('tus-upload', {}).get('href')}{file_content.get('generatedTusId')}")
 
+            print(uploader.file_size)
             offset = uploader.get_offset()
+            print(offset)
             for _ in tqdm(range(offset, uploader.file_size, chunk_size), unit='B', unit_scale=True,
                           desc=path_to_file.strip().split('/')[-1], position=0, leave=True, total=uploader.file_size - offset):
                 uploader.upload_chunk()
